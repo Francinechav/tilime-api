@@ -1,0 +1,9 @@
+export enum SalesOperationType {
+  SHOP_DELIVERY = 'SHOP_DELIVERY',
+
+  WALK_IN_SALE = 'WALK_IN_SALE',
+
+  STAFF_ALLOCATION = 'STAFF_ALLOCATION',
+
+  DAMAGE = 'DAMAGE',
+}
