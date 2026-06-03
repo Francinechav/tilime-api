@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductsModule } from './modules/products/products.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
@@ -23,30 +23,25 @@ import { EmailModule } from './modules/emails/email.module';
     }),
 
     TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        console.log('DB_DATABASE =', config.get('DB_DATABASE'));
+      useFactory: () => ({
+        type: 'mysql' as const,
 
-        return {
-          type: 'mysql' as const,
+        host: process.env.DB_HOST,
 
-          host: config.get<string>('DB_HOST'),
+        port: Number(process.env.DB_PORT),
 
-          port: Number(config.get<string>('DB_PORT')),
+        username: process.env.DB_USERNAME,
 
-          username: config.get<string>('DB_USERNAME'),
+        password: process.env.DB_PASSWORD,
 
-          password: config.get<string>('DB_PASSWORD'),
+        database: process.env.DB_DATABASE,
 
-          database: config.get<string>('DB_DATABASE'),
+        autoLoadEntities: true,
 
-          autoLoadEntities: true,
+        synchronize: true,
 
-          synchronize: true,
-
-          migrations: ['dist/database/migrations/*.js'],
-        };
-      },
+        migrations: ['dist/database/migrations/*.js'],
+      }),
     }),
 
     UsersModule,
