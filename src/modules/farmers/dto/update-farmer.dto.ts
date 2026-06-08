@@ -15,9 +15,5 @@ export class UpdateFarmerDto {
 
   @IsOptional()
   @IsString()
-  village?: string;
-
-  @IsOptional()
-  @IsString()
-  notes?: string;
+  address?: string;
 }

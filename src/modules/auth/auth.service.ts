@@ -96,6 +96,13 @@ export class AuthService {
 
     return {
       accessToken: this.jwtService.sign(payload),
+
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+      },
     };
   }
   async resendOtp(email: string) {

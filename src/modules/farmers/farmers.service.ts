@@ -34,6 +34,7 @@ export class FarmersService {
         farmerName: savedFarmer.fullName,
 
         phone: savedFarmer.phone,
+        address: savedFarmer.address,
       },
     });
 
