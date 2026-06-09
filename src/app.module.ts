@@ -15,6 +15,7 @@ import { UploadsModule } from './modules/uploads/uploads.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { SalesOperationsModule } from './modules/sales-operations/sales-operations.module';
 import { EmailModule } from './modules/emails/email.module';
+import { SeedService } from './database/seed.service';
 
 @Module({
   imports: [
@@ -67,5 +68,6 @@ import { EmailModule } from './modules/emails/email.module';
     SalesOperationsModule,
     EmailModule,
   ],
+  providers: [SeedService],
 })
 export class AppModule {}
