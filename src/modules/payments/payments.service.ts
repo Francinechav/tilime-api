@@ -69,7 +69,7 @@ export class PaymentsService {
 
       callback_url: `${process.env.APP_URL}/payments/callback`,
 
-      return_url: `${process.env.FRONTEND_URL}/payments/success`,
+      return_url: `${process.env.FRONTEND_URL}/payments/verify`,
 
       customization: {
         title: 'Tilime Honey',
