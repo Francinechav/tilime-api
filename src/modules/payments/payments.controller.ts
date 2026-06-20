@@ -24,12 +24,10 @@ export class PaymentsController {
   async handleWebhook(
     @Body()
     body: {
-      data?: {
-        tx_ref?: string;
-      };
+      tx_ref?: string;
     },
   ) {
-    const txRef = body.data?.tx_ref;
+    const txRef = body.tx_ref;
 
     if (!txRef) {
       return {
@@ -50,7 +48,7 @@ export class PaymentsController {
     await this.paymentsService.verifyPayment(txRef);
 
     return res.redirect(
-      `${process.env.FRONTEND_URL}/payments/success?tx_ref=${txRef}`,
+      `${process.env.FRONTEND_URL}/payments/verify?tx_ref=${txRef}`,
     );
   }
 }

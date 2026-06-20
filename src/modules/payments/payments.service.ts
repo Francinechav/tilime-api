@@ -132,6 +132,11 @@ export class PaymentsService {
     if (!payment) {
       throw new NotFoundException('Payment not found');
     }
+    if (payment.status === PaymentStatus.SUCCESS) {
+      return {
+        message: 'Payment already verified',
+      };
+    }
 
     const response = await firstValueFrom(
       this.httpService.get(
