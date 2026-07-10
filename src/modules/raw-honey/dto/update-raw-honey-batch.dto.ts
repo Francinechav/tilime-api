@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class UpdateRawHoneyBatchDto {
   @IsOptional()
@@ -7,8 +7,16 @@ export class UpdateRawHoneyBatchDto {
   quantity?: number;
 
   @IsOptional()
-  @IsString()
-  sourceLocation?: string;
+  @IsUUID()
+  farmerId?: string;
+
+  @IsOptional()
+  @IsNumber()
+  costPerKg?: number;
+
+  @IsOptional()
+  @IsNumber()
+  totalCost?: number;
 
   @IsOptional()
   @IsString()

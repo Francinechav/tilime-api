@@ -10,9 +10,6 @@ import {
 import { RawHoneySourceType } from '../../../common/enums/raw-honey-source.enum';
 
 export class CreateRawHoneyBatchDto {
-  @IsString()
-  batchNumber!: string;
-
   @IsEnum(RawHoneySourceType)
   sourceType!: RawHoneySourceType;
 

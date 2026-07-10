@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -29,18 +28,7 @@ export class RawHoneyService {
     private readonly farmersRepository: Repository<Farmer>,
     private readonly auditLogsService: AuditLogsService,
   ) {}
-
   async createBatch(dto: CreateRawHoneyBatchDto): Promise<RawHoneyBatch> {
-    const existingBatch = await this.rawHoneyRepository.findOne({
-      where: {
-        batchNumber: dto.batchNumber,
-      },
-    });
-
-    if (existingBatch) {
-      throw new ConflictException('Batch number already exists');
-    }
-
     let farmer: Farmer | null = null;
 
     if (dto.sourceType === RawHoneySourceType.FARMER) {
@@ -60,9 +48,27 @@ export class RawHoneyService {
         throw new NotFoundException('Farmer not found');
       }
     }
+    const latestBatch = await this.rawHoneyRepository.find({
+      order: {
+        createdAt: 'DESC',
+      },
+      take: 1,
+    });
+
+    let nextNumber = 1;
+
+    if (latestBatch.length > 0) {
+      const current = latestBatch[0].batchNumber;
+
+      const numericPart = Number(current.replace('BATCH-', ''));
+
+      nextNumber = numericPart + 1;
+    }
+
+    const batchNumber = `BATCH-${String(nextNumber).padStart(4, '0')}`;
 
     const batch = this.rawHoneyRepository.create({
-      batchNumber: dto.batchNumber,
+      batchNumber,
       sourceType: dto.sourceType,
       farmer: farmer || undefined,
       quantityKg: dto.quantityKg,
@@ -115,6 +121,19 @@ export class RawHoneyService {
     if (!batch) {
       throw new NotFoundException('Raw honey batch not found');
     }
+    if (dto.farmerId) {
+      const farmer = await this.farmersRepository.findOne({
+        where: {
+          id: dto.farmerId,
+        },
+      });
+
+      if (!farmer) {
+        throw new NotFoundException('Farmer not found');
+      }
+
+      batch.farmer = farmer;
+    }
 
     if (dto.quantity) {
       const usedQuantity = batch.quantityKg - batch.remainingQuantityKg;
@@ -123,8 +142,17 @@ export class RawHoneyService {
 
       batch.remainingQuantityKg = dto.quantity - usedQuantity;
     }
+    if (dto.costPerKg !== undefined) {
+      batch.costPerKg = dto.costPerKg;
+    }
 
-    Object.assign(batch, dto);
+    if (dto.totalCost !== undefined) {
+      batch.totalCost = dto.totalCost;
+    }
+
+    if (dto.notes !== undefined) {
+      batch.notes = dto.notes;
+    }
 
     const updatedBatch: RawHoneyBatch =
       await this.rawHoneyRepository.save(batch);
