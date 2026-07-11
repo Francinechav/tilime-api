@@ -1,5 +1,5 @@
 import {
-  IsEnum,
+  IsBoolean,
   IsNumber,
   IsOptional,
   IsString,
@@ -7,14 +7,12 @@ import {
   Min,
 } from 'class-validator';
 
-import { InventoryMovementType } from '../../../common/enums/inventory-movement-type.enum';
-
 export class AdjustStockDto {
   @IsUUID()
   productId!: string;
 
-  @IsEnum(InventoryMovementType)
-  movementType!: InventoryMovementType;
+  @IsBoolean()
+  increase!: boolean;
 
   @IsNumber()
   @Min(1)

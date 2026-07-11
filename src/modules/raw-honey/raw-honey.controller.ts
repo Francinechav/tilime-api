@@ -43,4 +43,8 @@ export class RawHoneyController {
   deleteRawHoneyBatch(@Param('id') id: string) {
     return this.rawHoneyService.deleteRawHoneyBatch(id);
   }
+  @Get('available')
+  getAvailableHoney() {
+    return this.rawHoneyService.getAvailableHoney();
+  }
 }

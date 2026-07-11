@@ -3,13 +3,10 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import { Farmer } from '../../farmers/entities/farmer.entity';
-
-import { PackagingRecord } from '../../packaging/entities/packaging-record.entity';
 
 import { RawHoneySourceType } from '../../../common/enums/raw-honey-source.enum';
 
@@ -70,9 +67,6 @@ export class RawHoneyBatch {
     nullable: true,
   })
   notes?: string;
-
-  @OneToMany(() => PackagingRecord, (record) => record.rawHoneyBatch)
-  packagingRecords!: PackagingRecord[];
 
   @CreateDateColumn()
   createdAt!: Date;

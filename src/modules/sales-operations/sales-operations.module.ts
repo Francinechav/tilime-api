@@ -13,6 +13,7 @@ import { InventoryMovement } from '../inventory/entities/inventory-movement.enti
 import { SalesOperationsService } from './sales-operations.service';
 
 import { SalesOperationsController } from './sales-operations.controller';
+import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { SalesOperationsController } from './sales-operations.controller';
 
       InventoryMovement,
     ]),
+    AuditLogsModule,
   ],
 
   providers: [SalesOperationsService],

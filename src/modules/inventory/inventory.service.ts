@@ -56,26 +56,14 @@ export class InventoryService {
 
     const previousStock = product.stockQuantity;
 
-    const outgoingMovements = [
-      InventoryMovementType.WEBSITE_ORDER,
-
-      InventoryMovementType.SHOP_DELIVERY,
-
-      InventoryMovementType.STAFF_ALLOCATION,
-
-      InventoryMovementType.DAMAGE,
-    ];
-
-    const isOutgoing = outgoingMovements.includes(dto.movementType);
-
-    if (isOutgoing && product.stockQuantity < dto.quantity) {
-      throw new BadRequestException('Insufficient stock available');
-    }
-
-    if (isOutgoing) {
-      product.stockQuantity -= dto.quantity;
-    } else {
+    if (dto.increase) {
       product.stockQuantity += dto.quantity;
+    } else {
+      if (product.stockQuantity < dto.quantity) {
+        throw new BadRequestException('Insufficient stock available');
+      }
+
+      product.stockQuantity -= dto.quantity;
     }
 
     await this.productsRepository.save(product);
@@ -83,7 +71,7 @@ export class InventoryService {
     const movement = this.inventoryRepository.create({
       product,
 
-      movementType: dto.movementType,
+      movementType: InventoryMovementType.ADJUSTMENT,
 
       quantity: dto.quantity,
 
@@ -110,7 +98,7 @@ export class InventoryService {
       after: {
         stockQuantity: product.stockQuantity,
 
-        movementType: dto.movementType,
+        adjustmentType: dto.increase ? 'Increase' : 'Decrease',
 
         quantity: dto.quantity,
       },

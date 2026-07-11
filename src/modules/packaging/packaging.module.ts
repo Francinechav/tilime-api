@@ -15,12 +15,14 @@ import { User } from '../users/entities/user.entity';
 
 import { InventoryMovement } from '../inventory/entities/inventory-movement.entity';
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
+import { PackagingConsumption } from './entities/packaging-consumption.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       PackagingRecord,
       RawHoneyBatch,
+      PackagingConsumption,
       Product,
       User,
       InventoryMovement,

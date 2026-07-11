@@ -200,4 +200,19 @@ export class RawHoneyService {
       message: 'Raw honey batch deleted successfully',
     };
   }
+  async getAvailableHoney() {
+    const batches = await this.rawHoneyRepository.find();
+
+    const totalAvailableKg = batches.reduce(
+      (sum, batch) => sum + Number(batch.remainingQuantityKg),
+      0,
+    );
+
+    return {
+      totalAvailableKg,
+      activeBatches: batches.filter(
+        (batch) => Number(batch.remainingQuantityKg) > 0,
+      ).length,
+    };
+  }
 }

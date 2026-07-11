@@ -1,8 +1,17 @@
-import { IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import {
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+} from 'class-validator';
+
+import { PackagingType } from '../../../common/enums/packaging-type.enum';
 
 export class CreatePackagingDto {
-  @IsUUID()
-  rawHoneyBatchId!: string;
+  @IsEnum(PackagingType)
+  type!: PackagingType;
 
   @IsUUID()
   productId!: string;
@@ -11,9 +20,10 @@ export class CreatePackagingDto {
   @Min(1)
   quantityProduced!: number;
 
+  @IsOptional()
   @IsNumber()
   @Min(0.1)
-  honeyUsedKg!: number;
+  honeyUsedKg?: number;
 
   @IsUUID()
   packagedBy!: string;
