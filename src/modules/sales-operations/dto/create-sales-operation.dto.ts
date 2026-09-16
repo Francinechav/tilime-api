@@ -1,4 +1,5 @@
 import {
+  IsDateString,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -23,9 +24,15 @@ export class CreateSalesOperationDto {
   @IsNumber()
   @Min(0)
   unitPrice!: number;
+  @IsOptional()
+  @IsString()
+  collectedBy?: string;
 
   @IsUUID()
   performedBy!: string;
+
+  @IsDateString()
+  operationDate!: string;
 
   @IsOptional()
   @IsString()

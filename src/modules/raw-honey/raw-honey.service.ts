@@ -112,7 +112,6 @@ export class RawHoneyService {
   ): Promise<RawHoneyBatch> {
     const batch = await this.rawHoneyRepository.findOne({
       where: { id },
-
       relations: {
         farmer: true,
       },
@@ -121,6 +120,13 @@ export class RawHoneyService {
     if (!batch) {
       throw new NotFoundException('Raw honey batch not found');
     }
+
+    const previousQuantity = Number(batch.quantityKg);
+
+    const previousRemainingQuantity = Number(batch.remainingQuantityKg);
+
+    const previousFarmerId = batch.farmer?.id;
+
     if (dto.farmerId) {
       const farmer = await this.farmersRepository.findOne({
         where: {
@@ -135,13 +141,20 @@ export class RawHoneyService {
       batch.farmer = farmer;
     }
 
-    if (dto.quantity) {
-      const usedQuantity = batch.quantityKg - batch.remainingQuantityKg;
+    if (dto.quantity !== undefined) {
+      const usedQuantity = previousQuantity - previousRemainingQuantity;
+
+      if (dto.quantity < usedQuantity) {
+        throw new BadRequestException(
+          `Quantity cannot be less than the ${usedQuantity}kg already used from this batch`,
+        );
+      }
 
       batch.quantityKg = dto.quantity;
 
       batch.remainingQuantityKg = dto.quantity - usedQuantity;
     }
+
     if (dto.costPerKg !== undefined) {
       batch.costPerKg = dto.costPerKg;
     }
@@ -154,8 +167,7 @@ export class RawHoneyService {
       batch.notes = dto.notes;
     }
 
-    const updatedBatch: RawHoneyBatch =
-      await this.rawHoneyRepository.save(batch);
+    const updatedBatch = await this.rawHoneyRepository.save(batch);
 
     await this.auditLogsService.createLog({
       action: 'UPDATE_RAW_HONEY_BATCH',
@@ -163,6 +175,22 @@ export class RawHoneyService {
       entityType: 'RAW_HONEY',
 
       entityId: updatedBatch.id,
+
+      before: {
+        quantityKg: previousQuantity,
+
+        remainingQuantityKg: previousRemainingQuantity,
+
+        farmerId: previousFarmerId,
+      },
+
+      after: {
+        quantityKg: updatedBatch.quantityKg,
+
+        remainingQuantityKg: updatedBatch.remainingQuantityKg,
+
+        farmerId: updatedBatch.farmer?.id,
+      },
 
       metadata: {
         batchNumber: updatedBatch.batchNumber,

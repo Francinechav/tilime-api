@@ -15,12 +15,10 @@ import { OrderItem } from './entities/order-item.entity';
 import { Product } from '../products/entities/product.entity';
 
 import { CreateOrderDto } from './dto/create-order.dto';
-
-import { DeliveryMethod } from '../../common/enums/delivery-method.enum';
 import { OrderStatus } from '../../common/enums/order-status.enum';
 import { CreateWebsiteOrderDto } from './dto/create-website-order.dto';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
-import { EmailService } from '../emails/email.service';
+import { PaymentStatus } from '../../common/enums/payment-status.enum';
 
 @Injectable()
 export class OrdersService {
@@ -33,7 +31,6 @@ export class OrdersService {
 
     @InjectRepository(Product)
     private readonly productsRepository: Repository<Product>,
-    private readonly emailService: EmailService,
 
     private readonly paymentsService: PaymentsService,
     private readonly auditLogsService: AuditLogsService,
@@ -71,14 +68,9 @@ export class OrdersService {
 
       orderItems.push(orderItem);
     }
+    const deliveryFee = 0;
 
-    let deliveryFee = 0;
-
-    if (dto.deliveryMethod === DeliveryMethod.DELIVERY) {
-      deliveryFee = 5000;
-    }
-
-    const totalAmount = subtotal + deliveryFee;
+    const totalAmount = subtotal;
 
     const orderNumber = `ORD-${Date.now()}`;
 
@@ -159,6 +151,29 @@ export class OrdersService {
 
     const previousStatus = order.orderStatus;
 
+    if (
+      [
+        OrderStatus.PROCESSING,
+        OrderStatus.READY_FOR_PICKUP,
+        OrderStatus.DISPATCHED,
+        OrderStatus.DELIVERED,
+      ].includes(status) &&
+      order.paymentStatus !== PaymentStatus.SUCCESS
+    ) {
+      throw new BadRequestException(
+        'Order must have a successful payment before fulfillment can begin',
+      );
+    }
+
+    if (
+      status === OrderStatus.PAID &&
+      order.paymentStatus !== PaymentStatus.SUCCESS
+    ) {
+      throw new BadRequestException(
+        'Order cannot be marked as PAID until payment is successful',
+      );
+    }
+
     order.orderStatus = status;
 
     const updatedOrder = await this.ordersRepository.save(order);
@@ -201,11 +216,8 @@ export class OrdersService {
 
     const orderItems: {
       product: Product;
-
       quantity: number;
-
       unitPrice: number;
-
       subtotal: number;
     }[] = [];
 
@@ -220,20 +232,23 @@ export class OrdersService {
         throw new NotFoundException('Product not found');
       }
 
-      totalAmount += Number(product.price) * item.quantity;
+      if (product.stockQuantity < item.quantity) {
+        throw new BadRequestException(
+          `${product.name} does not have enough stock`,
+        );
+      }
+
+      const itemSubtotal = Number(product.price) * item.quantity;
+
+      totalAmount += itemSubtotal;
 
       orderItems.push({
         product,
-
         quantity: item.quantity,
-
         unitPrice: Number(product.price),
-
-        subtotal: Number(product.price) * item.quantity,
+        subtotal: itemSubtotal,
       });
     }
-
-    const subtotal = totalAmount;
 
     const order = this.ordersRepository.create({
       orderNumber,
@@ -248,28 +263,14 @@ export class OrdersService {
 
       deliveryMethod: dto.deliveryMethod,
 
-      subtotal,
+      subtotal: totalAmount,
 
       deliveryFee: 0,
 
       totalAmount,
     });
+
     const savedOrder = await this.ordersRepository.save(order);
-    await this.emailService.sendWebsiteOrderCustomerEmail(
-      savedOrder.customerEmail!,
-
-      savedOrder.orderNumber,
-
-      savedOrder.totalAmount,
-    );
-
-    await this.emailService.sendAdminWebsiteOrderEmail(
-      savedOrder.orderNumber,
-
-      savedOrder.customerName,
-
-      savedOrder.totalAmount,
-    );
 
     const createdItems = orderItems.map((item) =>
       this.orderItemsRepository.create({

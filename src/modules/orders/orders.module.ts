@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { EmailModule } from '../emails/email.module';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -18,7 +17,6 @@ import { AuditLogsModule } from '../audit-logs/audit-logs.module';
     TypeOrmModule.forFeature([Order, OrderItem, Product]),
     PaymentsModule,
     AuditLogsModule,
-    EmailModule,
   ],
 
   controllers: [OrdersController],

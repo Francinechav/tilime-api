@@ -15,10 +15,13 @@ import { Product } from '../products/entities/product.entity';
 
 import { InventoryMovement } from '../inventory/entities/inventory-movement.entity';
 import { OrderItem } from '../orders/entities/order-item.entity';
+import { EmailModule } from '../emails/email.module';
 
 @Module({
   imports: [
     HttpModule,
+
+    EmailModule,
 
     TypeOrmModule.forFeature([
       Payment,

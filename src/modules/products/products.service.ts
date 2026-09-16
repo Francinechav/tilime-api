@@ -61,7 +61,7 @@ export class ProductsService {
       where: {
         id: dto.categoryId,
       },
-    });
+    }); 
 
     if (!category) {
       throw new NotFoundException('Category not found');

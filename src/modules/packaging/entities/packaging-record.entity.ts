@@ -1,23 +1,21 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import { Product } from '../../products/entities/product.entity';
-
 import { User } from '../../users/entities/user.entity';
 import { PackagingType } from '../../../common/enums/packaging-type.enum';
-
-import { OneToMany } from 'typeorm';
 import { PackagingConsumption } from './packaging-consumption.entity';
 
 @Entity('packaging_records')
 export class PackagingRecord {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
   @Column({
     type: 'enum',
     enum: PackagingType,
@@ -39,6 +37,7 @@ export class PackagingRecord {
     nullable: true,
   })
   honeyUsedKg?: number;
+
   @ManyToOne(() => User, {
     eager: true,
   })
@@ -52,11 +51,15 @@ export class PackagingRecord {
     },
   )
   consumptions!: PackagingConsumption[];
+
+  @Column({
+    type: 'date',
+    nullable: true,
+  })
+  packagedAt?: Date;
+
   @Column({
     nullable: true,
   })
   notes?: string;
-
-  @CreateDateColumn()
-  packagedAt!: Date;
 }

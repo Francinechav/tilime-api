@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -24,7 +25,6 @@ export class SalesOperation {
 
   @Column({
     type: 'enum',
-
     enum: SalesOperationType,
   })
   operationType!: SalesOperationType;
@@ -34,22 +34,16 @@ export class SalesOperation {
 
   @Column({
     type: 'decimal',
-
     precision: 10,
-
     scale: 2,
-
     default: 0,
   })
   unitPrice!: number;
 
   @Column({
     type: 'decimal',
-
     precision: 10,
-
     scale: 2,
-
     default: 0,
   })
   totalAmount!: number;
@@ -60,14 +54,30 @@ export class SalesOperation {
   recipient?: string;
 
   @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  collectedBy?: string | null;
+
+  @Column({
     nullable: true,
   })
   notes?: string;
 
   @ManyToOne(() => User, {
     eager: true,
+    nullable: true,
+    onDelete: 'SET NULL',
   })
-  performedBy!: User;
+  @JoinColumn({ name: 'performedById' })
+  performedBy?: User | null;
+
+  @Column({
+    type: 'date',
+    nullable: true,
+  })
+  operationDate?: Date;
 
   @CreateDateColumn()
   createdAt!: Date;

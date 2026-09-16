@@ -38,8 +38,9 @@ export class InventoryMovement {
 
   @ManyToOne(() => User, {
     eager: true,
+    nullable: true,
   })
-  performedBy!: User;
+  performedBy?: User;
 
   @Column({
     nullable: true,

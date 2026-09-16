@@ -1,4 +1,5 @@
 import {
+  IsDateString,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -27,6 +28,9 @@ export class CreatePackagingDto {
 
   @IsUUID()
   packagedBy!: string;
+
+  @IsDateString()
+  packagedAt!: string;
 
   @IsOptional()
   @IsString()

@@ -1,4 +1,5 @@
 import {
+  IsDateString,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -24,6 +25,9 @@ export class UpdatePackagingDto {
   @IsNumber()
   @Min(1)
   quantityProduced!: number;
+
+  @IsDateString()
+  packagedAt!: string;
 
   @IsOptional()
   @IsString()

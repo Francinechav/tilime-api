@@ -16,6 +16,10 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { SalesOperationsModule } from './modules/sales-operations/sales-operations.module';
 import { EmailModule } from './modules/emails/email.module';
 import { SeedService } from './database/seed.service';
+import { DailyActivityCategoriesModule } from './modules/daily-activity-categories/daily-activity-categories.module';
+import { DailyActivitiesModule } from './modules/daily-activities/daily-activities.module';
+import { DailyActivity } from './modules/daily-activities/entities/daily-activity.entity';
+import { DailyActivityCategory } from './modules/daily-activity-categories/entities/daily-activity-category.entity';
 
 @Module({
   imports: [
@@ -39,7 +43,7 @@ import { SeedService } from './database/seed.service';
 
         autoLoadEntities: true,
 
-        synchronize: true,
+        synchronize: false,
 
         migrations: ['dist/database/migrations/*.js'],
       }),
@@ -61,12 +65,15 @@ import { SeedService } from './database/seed.service';
     OrdersModule,
 
     AuthModule,
-
+    DailyActivityCategoriesModule,
+    DailyActivitiesModule,
     ReportsModule,
     UploadsModule,
     AuditLogsModule,
     SalesOperationsModule,
     EmailModule,
+    DailyActivity,
+    DailyActivityCategory,
   ],
   providers: [SeedService],
 })

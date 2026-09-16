@@ -6,7 +6,7 @@ import {
 
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 import { InventoryMovement } from './entities/inventory-movement.entity';
 
@@ -17,8 +17,8 @@ import { User } from '../users/entities/user.entity';
 import { AdjustStockDto } from './dto/adjust-stock.dto';
 
 import { InventoryMovementType } from '../../common/enums/inventory-movement-type.enum';
-import { AuditLogsService } from '../audit-logs/audit-logs.service';
 
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 @Injectable()
 export class InventoryService {
   constructor(
@@ -30,20 +30,13 @@ export class InventoryService {
 
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+
     private readonly auditLogsService: AuditLogsService,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   async adjustStock(dto: AdjustStockDto): Promise<InventoryMovement> {
-    const product = await this.productsRepository.findOne({
-      where: {
-        id: dto.productId,
-      },
-    });
-
-    if (!product) {
-      throw new NotFoundException('Product not found');
-    }
-
     const user = await this.usersRepository.findOne({
       where: {
         id: dto.performedBy,
@@ -54,58 +47,73 @@ export class InventoryService {
       throw new NotFoundException('User not found');
     }
 
-    const previousStock = product.stockQuantity;
+    const savedMovement = await this.dataSource.transaction(async (manager) => {
+      const product = await manager.findOne(Product, {
+        where: {
+          id: dto.productId,
+        },
+        lock: {
+          mode: 'pessimistic_write',
+        },
+      });
 
-    if (dto.increase) {
-      product.stockQuantity += dto.quantity;
-    } else {
-      if (product.stockQuantity < dto.quantity) {
+      if (!product) {
+        throw new NotFoundException('Product not found');
+      }
+
+      const previousStock = product.stockQuantity;
+
+      const stockChange = dto.increase ? dto.quantity : -dto.quantity;
+
+      if (!dto.increase && product.stockQuantity < dto.quantity) {
         throw new BadRequestException('Insufficient stock available');
       }
 
-      product.stockQuantity -= dto.quantity;
-    }
+      product.stockQuantity += stockChange;
 
-    await this.productsRepository.save(product);
+      await manager.save(Product, product);
 
-    const movement = this.inventoryRepository.create({
-      product,
+      const movement = manager.create(InventoryMovement, {
+        product,
 
-      movementType: InventoryMovementType.ADJUSTMENT,
+        movementType: InventoryMovementType.ADJUSTMENT,
 
-      quantity: dto.quantity,
+        quantity: stockChange,
 
-      performedBy: user,
+        performedBy: user,
 
-      notes: dto.notes,
-    });
+        notes: dto.notes,
+      });
 
-    const savedMovement = await this.inventoryRepository.save(movement);
+      const saved = await manager.save(InventoryMovement, movement);
 
-    await this.auditLogsService.createLog({
-      action: 'ADJUST_STOCK',
+      await this.auditLogsService.createLog({
+        action: 'ADJUST_STOCK',
 
-      entityType: 'INVENTORY',
+        entityType: 'INVENTORY',
 
-      entityId: savedMovement.id,
+        entityId: saved.id,
 
-      performedBy: user.email,
+        performedBy: user.email,
 
-      before: {
-        stockQuantity: previousStock,
-      },
+        before: {
+          stockQuantity: previousStock,
+        },
 
-      after: {
-        stockQuantity: product.stockQuantity,
+        after: {
+          stockQuantity: product.stockQuantity,
 
-        adjustmentType: dto.increase ? 'Increase' : 'Decrease',
+          adjustmentType: dto.increase ? 'Increase' : 'Decrease',
 
-        quantity: dto.quantity,
-      },
+          quantity: dto.quantity,
+        },
 
-      metadata: {
-        productName: product.name,
-      },
+        metadata: {
+          productName: product.name,
+        },
+      });
+
+      return saved;
     });
 
     return savedMovement;

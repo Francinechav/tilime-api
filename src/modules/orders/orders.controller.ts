@@ -3,8 +3,8 @@ import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 
 import { CreateOrderDto } from './dto/create-order.dto';
-import { OrderStatus } from '../../common/enums/order-status.enum';
 import { CreateWebsiteOrderDto } from './dto/create-website-order.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -32,15 +32,17 @@ export class OrdersController {
   findOneOrder(@Param('id') id: string) {
     return this.ordersService.findOneOrder(id);
   }
+
   @Patch(':id/status')
   updateOrderStatus(
     @Param('id') id: string,
 
-    @Body('status')
-    status: OrderStatus,
+    @Body()
+    dto: UpdateOrderStatusDto,
   ) {
-    return this.ordersService.updateOrderStatus(id, status);
+    return this.ordersService.updateOrderStatus(id, dto.status);
   }
+
   @Post('website')
   createWebsiteOrder(
     @Body()

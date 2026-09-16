@@ -1,4 +1,5 @@
 import {
+  IsDateString,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -24,9 +25,15 @@ export class UpdateSalesOperationDto {
   @Min(0)
   unitPrice!: number;
 
+  @IsDateString()
+  operationDate!: string;
+
   @IsOptional()
   @IsString()
   recipient?: string;
+  @IsOptional()
+  @IsString()
+  collectedBy?: string;
 
   @IsOptional()
   @IsString()
