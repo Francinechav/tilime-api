@@ -46,7 +46,7 @@ export const AppDataSource = new DataSource({
     Product,
     ProductCategory,
     RawHoneyBatch,
-    Farmer,
+    Farmer, 
     InventoryMovement,
     User,
     OrderItem,
